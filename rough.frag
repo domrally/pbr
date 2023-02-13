@@ -135,7 +135,7 @@ void main() {
 	vec3 diffuse = vec3(d);
 
 	// subsurface scattering
-	vec3 scattered = sss(bulb, d);
+	vec3 scattered = vec3(sss(bulb, d));
 
 	// 
 	gl_FragColor.rgb = diffuse + specular + scattered;
