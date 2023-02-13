@@ -1,5 +1,14 @@
 //FRAGMENT SHADER
 
+struct Light
+{
+    float intensity;
+    vec3 position;
+    vec3 color;
+};
+
+const float pi = 3.1415926535897932384626433832795;
+
 varying vec3 awayFromTriangle;
 varying vec2 textureCoordinate;
 varying vec3 toCamera;
@@ -105,6 +114,9 @@ float orenNayar(vec3 normal, Light light, vec3 eye)
 }
 
 void main() {
+	// light
+	Light bulb = Light(2., vec3(100.0, 100.0, -100.0), vec3(1.0, 1.0, 1.0));
+
 	// specular reflections
 	vec3 specular = cookTorrance(toCamera, awayFromTriangle, bulb);
 
