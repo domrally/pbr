@@ -113,6 +113,16 @@ float orenNayar(vec3 normal, Light light, vec3 eye)
     return L;
 }
 
+// scattering of light below the surface of the object
+float sss(Light light, float orenNayar)
+{
+    const float scatterWidth = 0.3;
+    const float scatterWidth2 = 2.0 * scatterWidth;
+    float s = light.intensity * smoothstep(0.0, scatterWidth, orenNayar) * smoothstep(scatterWidth2, scatterWidth, orenNayar);
+        
+    return s;
+}
+
 void main() {
 	// light
 	Light bulb = Light(2., vec3(100.0, 100.0, -100.0), vec3(1.0, 1.0, 1.0));
