@@ -7,7 +7,7 @@ varying vec3 toCamera;
 
 void main(void) {
 	// direction away from the this corner of the triangle
-	awayFromTriangle = normalMatrix * normal;
+	awayFromTriangle = normal;
 
 	// map from this corner of the triangle to the texture
 	textureCoordinate = uv;

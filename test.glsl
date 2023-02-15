@@ -24,7 +24,7 @@ attribute vec4 a_normal;
 void main(void) {
 	v_position = u_projectionMatrix * u_modelViewMatrix * a_position;
 	awayFromTriangle = normalize((u_normalMatrix * a_normal).xyz);
-	toCamera = normalize(vec3(0., 0., -15.)-a_position.xyz);
+	toCamera = normalize(vec3(0., 0., -4.)-a_position.xyz);
 	gl_Position = v_position;// + v_normal * .2 * (0.5 + .5 * sin(u_time + v_position.x + v_position.y + v_position.z));
 }
 #else
@@ -99,7 +99,7 @@ vec3 cookTorrance(vec3 V, vec3 N, Light L)
     
     vec3 color = k * L.intensity * L.color / sqrt(dot(L.position, L.position));
 
-	 color = clamp(color, 0.0, 1.0);
+	 color = max(color, 0.);
         
     return color;
 }
@@ -130,19 +130,9 @@ float orenNayar(vec3 normal, Light light, vec3 eye)
     L *= max(lightNormalProjection, 0.0) / sqrt(dot(light.position, light.position));
     L *= light.intensity;
 
-	 L = clamp(L, 0.0, 1.0);
+	 L = max(L, 0.);
     
     return L;
-}
-
-// scattering of light below the surface of the object
-float sss(Light light, float orenNayar)
-{
-    const float scatterWidth = 0.3;
-    const float scatterWidth2 = 2.0 * scatterWidth;
-    float s = light.intensity * smoothstep(0.0, scatterWidth, orenNayar) * smoothstep(scatterWidth2, scatterWidth, orenNayar);
-        
-    return s;
 }
 
 void main() {
@@ -156,7 +146,6 @@ void main() {
 	vec3 specular;
 	float d;
 	vec3 diffuse;
-	vec3 scattered;
 
 	// specular reflections
 	#pragma unroll_loop_start
@@ -170,11 +159,8 @@ void main() {
 		d = orenNayar(awayFromTriangle, light, toCamera);
 		diffuse = vec3(d);
 
-		// subsurface scattering
-		scattered = vec3(sss(light, d));
-
 		// 
-		gl_FragColor.rgb += diffuse + specular + scattered;
+		gl_FragColor.rgb += diffuse + specular;
 	}
 	#pragma unroll_loop_end
 
