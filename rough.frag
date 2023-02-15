@@ -10,7 +10,6 @@ struct Light
 const float pi = 3.1415926535897932384626433832795;
 
 varying vec3 awayFromTriangle;
-varying vec2 textureCoordinate;
 varying vec3 toCamera;
 
 // distribution of reflective microfacets on a surface
@@ -74,9 +73,6 @@ vec3 cookTorrance(vec3 V, vec3 N, Light L)
     
     vec3 color = k * L.intensity * L.color;
 
-	//  color = .25 + .5 * color;
-	 color *= .5;
-
 	 color = clamp(color, 0.0, 1.0);
         
     return color;
@@ -138,6 +134,9 @@ void main() {
 	vec3 scattered = vec3(sss(bulb, d));
 
 	// 
-	gl_FragColor.rgb = diffuse + specular + scattered;
+	gl_FragColor.rgb = vec3(.4) + diffuse + specular + scattered;
 	gl_FragColor.a = 1.;
+
+	float screenGamma = 2.2;
+	gl_FragColor = pow(gl_FragColor / 2., vec4(1.0 / screenGamma));
 }
