@@ -127,21 +127,26 @@ void main() {
 	lights[2] = Light(.1, normalize(vec3(1., 0., 1.)), vec3(1., 1., 1.));
 
 	gl_FragColor.rgb = vec3(.1);
+	Light light;
+	vec3 specular;
+	float d;
+	vec3 diffuse;
+	vec3 scattered;
 
 	// specular reflections
 	#pragma unroll_loop_start
 	for ( int i = 0; i < 3; i ++ ) {
-		Light light = lights[i];
+		light = lights[i];
 
 		// ...
-		vec3 specular = cookTorrance(toCamera, awayFromTriangle, light);
+		specular = cookTorrance(toCamera, awayFromTriangle, light);
 
 		//  diffuse reflections
-		float d = orenNayar(awayFromTriangle, light, toCamera);
-		vec3 diffuse = vec3(d);
+		d = orenNayar(awayFromTriangle, light, toCamera);
+		diffuse = vec3(d);
 
 		// subsurface scattering
-		vec3 scattered = vec3(sss(light, d));
+		scattered = vec3(sss(light, d));
 
 		// 
 		gl_FragColor.rgb += diffuse + specular + scattered;
