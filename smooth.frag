@@ -129,7 +129,7 @@ void main() {
 
 		// specular highlights
 		halfDir = normalize(light.direction + toCamera);
-		specular = max(dot(halfDir, awayFromTriangle), 0.) * light.intensity;
+		specular = vec3(max(dot(halfDir, awayFromTriangle), 0.) * light.intensity);
 
 		// diffuse reflections
 		d = light.intensity * dot(awayFromTriangle, light.direction);
