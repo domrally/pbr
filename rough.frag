@@ -134,7 +134,7 @@ void main() {
 		diffuse = vec3(d);
 
 		// 
-		gl_FragColor.rgb += diffuse + specular + scattered;
+		gl_FragColor.rgb += diffuse + specular;
 	}
 	#pragma unroll_loop_end
 
