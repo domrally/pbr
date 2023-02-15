@@ -10,7 +10,6 @@ struct Light
 const float pi = 3.1415926535897932384626433832795;
 
 varying vec3 awayFromTriangle;
-varying vec2 textureCoordinate;
 varying vec3 toCamera;
 
 // distribution of reflective microfacets on a surface
