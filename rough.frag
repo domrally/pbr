@@ -73,7 +73,7 @@ vec3 cookTorrance(vec3 V, vec3 N, Light L)
     
     vec3 color = k * L.intensity * L.color;
 
-	 color = clamp(color, 0.0, 1.0);
+	 color = max(color, 0.);
         
     return color;
 }
@@ -109,16 +109,6 @@ float orenNayar(vec3 normal, Light light, vec3 eye)
     return L;
 }
 
-// scattering of light below the surface of the object
-float sss(Light light, float orenNayar)
-{
-    const float scatterWidth = 0.3;
-    const float scatterWidth2 = 2.0 * scatterWidth;
-    float s = light.intensity * smoothstep(0.0, scatterWidth, orenNayar) * smoothstep(scatterWidth2, scatterWidth, orenNayar);
-        
-    return s;
-}
-
 void main() {
 	// light
 	Light lights[2];
@@ -130,7 +120,6 @@ void main() {
 	vec3 specular;
 	float d;
 	vec3 diffuse;
-	vec3 scattered;
 
 	// specular reflections
 	#pragma unroll_loop_start
@@ -143,9 +132,6 @@ void main() {
 		//  diffuse reflections
 		d = orenNayar(awayFromTriangle, light, toCamera);
 		diffuse = vec3(d);
-
-		// subsurface scattering
-		scattered = vec3(sss(light, d));
 
 		// 
 		gl_FragColor.rgb += diffuse + specular + scattered;
