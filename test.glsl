@@ -1,16 +1,42 @@
-//FRAGMENT SHADER
+//VERTEX SHADER
 
+#extension GL_OES_standard_derivatives : enable
+
+#ifdef GL_ES
+precision mediump float;
+#endif
+
+// minimal vertex shader for physically based rendering 
+varying vec3 toCamera;
+varying vec4 v_position;
+varying vec3 awayFromTriangle;
+
+uniform mat4 u_projectionMatrix;
+uniform mat4 u_modelViewMatrix;
+uniform mat4 u_normalMatrix;
+
+#if defined(VERTEX)
+
+// attribute vec4 a_position; // myfolder/myfile.obj
+attribute vec4 a_position;
+attribute vec4 a_normal;
+
+void main(void) {
+	v_position = u_projectionMatrix * u_modelViewMatrix * a_position;
+	awayFromTriangle = normalize((u_normalMatrix * a_normal).xyz);
+	toCamera = normalize(vec3(0., 0., -15.)-a_position.xyz);
+	gl_Position = v_position;// + v_normal * .2 * (0.5 + .5 * sin(u_time + v_position.x + v_position.y + v_position.z));
+}
+#else
+//FRAGMENT SHADER
 struct Light
 {
     float intensity;
-    vec3 direction;
+    vec3 position;
     vec3 color;
 };
 
 const float pi = 3.1415926535897932384626433832795;
-
-varying vec3 awayFromTriangle;
-varying vec3 toCamera;
 
 // distribution of reflective microfacets on a surface
 // see: https://en.wikipedia.org/wiki/Specular_highlight#Beckmann_distribution
@@ -55,9 +81,9 @@ float schlickApproximation(float VN)
 // see: https://en.wikipedia.org/wiki/Specular_highlight#Cook%E2%80%93Torrance_model
 vec3 cookTorrance(vec3 V, vec3 N, Light L)
 {
-    vec3 H = normalize(V + L.direction);
+    vec3 H = normalize(V + normalize(-L.position));
     float VN = dot(V, N);
-    float NL = dot(N, L.direction);
+    float NL = dot(N, normalize(-L.position));
     float HN = dot(H, N);
     float VH = dot(V, H);
     
@@ -71,7 +97,7 @@ vec3 cookTorrance(vec3 V, vec3 N, Light L)
     
     float k = 0.25 * D * F * G / (VN * NL);
     
-    vec3 color = k * L.intensity * L.color;
+    vec3 color = k * L.intensity * L.color / sqrt(dot(L.position, L.position));
 
 	 color = clamp(color, 0.0, 1.0);
         
@@ -89,7 +115,7 @@ float orenNayar(vec3 normal, Light light, vec3 eye)
     const float B = 0.45 * sigma2 / (sigma2 + 0.09);
     
     float eyeNormalProjection = dot(eye, normal);
-    float lightNormalProjection = -dot(light.direction, normal);
+    float lightNormalProjection = dot(normalize(light.position), normal);
     float thetaEye = acos(eyeNormalProjection);
     float thetaLight = acos(lightNormalProjection);
     float alpha = max(thetaEye, thetaLight);
@@ -101,10 +127,10 @@ float orenNayar(vec3 normal, Light light, vec3 eye)
     float phiLight = acos(dot(lightNormalRejection, axis));
     
     float L = A + B * max(cos(phiEye - phiLight), 0.0) * sin(alpha) * tan(beta);
-    L *= max(lightNormalProjection, 0.0);
+    L *= max(lightNormalProjection, 0.0) / sqrt(dot(light.position, light.position));
     L *= light.intensity;
 
-	 L = max(L, 0.);
+	 L = clamp(L, 0.0, 1.0);
     
     return L;
 }
@@ -121,35 +147,23 @@ float sss(Light light, float orenNayar)
 
 void main() {
 	// light
-	Light lights[3];
-	lights[0] = Light(.4, normalize(vec3(1., 1., -1.)), vec3(1., 1., 1.));
-	lights[1] = Light(.2, normalize(vec3(-1., 0., -1.)), vec3(1., 1., 1.));
-	lights[2] = Light(.1, normalize(vec3(1., 0., 1.)), vec3(1., 1., 1.));
-
-	gl_FragColor.rgb = vec3(.1);
+	Light bulb = Light(.1, normalize(vec3(10.0, 10.0, 10.0)), vec3(1., 1., 1.));
 
 	// specular reflections
-	#pragma unroll_loop_start
-	for ( int i = 0; i < 3; i ++ ) {
-		Light light = lights[i];
+	vec3 specular = cookTorrance((toCamera), awayFromTriangle, bulb);
 
-		// ...
-		vec3 specular = cookTorrance(toCamera, awayFromTriangle, light);
+	//  diffuse reflections
+	float d = orenNayar(awayFromTriangle, bulb,toCamera);
+	vec3 diffuse = vec3(d);
 
-		//  diffuse reflections
-		float d = orenNayar(awayFromTriangle, light, toCamera);
-		vec3 diffuse = vec3(d);
+	// subsurface scattering
+	vec3 scattered = vec3(sss(bulb, d));
 
-		// subsurface scattering
-		vec3 scattered = vec3(sss(light, d));
-
-		// 
-		gl_FragColor.rgb += diffuse + specular + scattered;
-	}
-	#pragma unroll_loop_end
-
+	// 
+	gl_FragColor.rgb = vec3(.1, .1, .1) * (vec3(.1) + scattered + diffuse) + vec3(0., .2, 1.) * specular;
 	gl_FragColor.a = 1.;
 
 	float screenGamma = 2.2;
 	gl_FragColor = pow(gl_FragColor / 2., vec4(1.0 / screenGamma));
 }
+#endif
