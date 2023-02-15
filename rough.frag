@@ -123,8 +123,8 @@ void main() {
 	// light
 	Light lights[3];
 	lights[0] = Light(.4, normalize(vec3(1., 1., -1.)), vec3(1., 1., 1.));
-	lights[1] = Light(.2, normalize(vec3(-1., 0., -1.)), vec3(1., 1., 1.));
-	lights[2] = Light(.1, normalize(vec3(1., 0., 1.)), vec3(1., 1., 1.));
+	lights[1] = Light(.1, normalize(vec3(-1., 0., -1.)), vec3(1., 1., 1.));
+	lights[2] = Light(.05, normalize(vec3(1., 0., 1.)), vec3(1., 1., 1.));
 
 	gl_FragColor.rgb = vec3(.1);
 	Light light;
