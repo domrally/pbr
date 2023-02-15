@@ -112,8 +112,8 @@ float orenNayar(vec3 normal, Light light, vec3 eye)
 void main() {
 	// light
 	Light lights[2];
-	lights[0] = Light(.14, normalize(vec3(1., 1., 1.)), vec3(1., 1., 1.));
-	lights[1] = Light(.07, normalize(vec3(-1., .5, 1.)), vec3(1., 1., 1.));
+	lights[0] = Light(.14, normalize(vec3(1., 1., -1.)), vec3(1., 1., 1.));
+	lights[1] = Light(.07, normalize(vec3(-1., .5, -1.)), vec3(1., 1., 1.));
 
 	gl_FragColor.rgb = vec3(.1);
 	Light light;
