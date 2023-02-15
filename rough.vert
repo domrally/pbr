@@ -12,9 +12,9 @@ void main(void) {
 	// map from this corner of the triangle to the texture
 	textureCoordinate = uv;
 
-	// direction from this corner of the triangle to the camera 
-	toCamera = normalize(cameraPosition - position);
-
 	// where you see triangles when you look through the camera
 	gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
+
+	// direction from this corner of the triangle to the camera 
+	toCamera = normalize(cameraPosition - gl_Position.xyz);
 }
