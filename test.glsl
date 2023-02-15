@@ -147,20 +147,37 @@ float sss(Light light, float orenNayar)
 
 void main() {
 	// light
-	Light bulb = Light(.1, normalize(vec3(10.0, 10.0, 10.0)), vec3(1., 1., 1.));
+	Light lights[2];
+	lights[0] = Light(.14, normalize(vec3(1., 1., 1.)), vec3(1., 1., 1.));
+	lights[1] = Light(.07, normalize(vec3(-1., .5, 1.)), vec3(1., 1., 1.));
+
+	gl_FragColor.rgb = vec3(.1);
+	Light light;
+	vec3 specular;
+	float d;
+	vec3 diffuse;
+	vec3 scattered;
 
 	// specular reflections
-	vec3 specular = cookTorrance((toCamera), awayFromTriangle, bulb);
+	#pragma unroll_loop_start
+	for ( int i = 0; i < 2; i ++ ) {
+		light = lights[i];
 
-	//  diffuse reflections
-	float d = orenNayar(awayFromTriangle, bulb,toCamera);
-	vec3 diffuse = vec3(d);
+		// ...
+		specular = cookTorrance(toCamera, awayFromTriangle, light);
 
-	// subsurface scattering
-	vec3 scattered = vec3(sss(bulb, d));
+		//  diffuse reflections
+		d = orenNayar(awayFromTriangle, light, toCamera);
+		diffuse = vec3(d);
 
-	// 
-	gl_FragColor.rgb = vec3(.1, .1, .1) * (vec3(.1) + scattered + diffuse) + vec3(0., .2, 1.) * specular;
+		// subsurface scattering
+		scattered = vec3(sss(light, d));
+
+		// 
+		gl_FragColor.rgb += diffuse + specular + scattered;
+	}
+	#pragma unroll_loop_end
+
 	gl_FragColor.a = 1.;
 
 	float screenGamma = 2.2;

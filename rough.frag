@@ -121,10 +121,9 @@ float sss(Light light, float orenNayar)
 
 void main() {
 	// light
-	Light lights[3];
-	lights[0] = Light(.1, normalize(vec3(1., 1., -1.)), vec3(1., 1., 1.));
-	lights[1] = Light(.02, normalize(vec3(-1., 0., -1.)), vec3(1., 1., 1.));
-	lights[2] = Light(.01, normalize(vec3(1., 0., 1.)), vec3(1., 1., 1.));
+	Light lights[2];
+	lights[0] = Light(.14, normalize(vec3(1., 1., 1.)), vec3(1., 1., 1.));
+	lights[1] = Light(.07, normalize(vec3(-1., .5, 1.)), vec3(1., 1., 1.));
 
 	gl_FragColor.rgb = vec3(.1);
 	Light light;
@@ -135,7 +134,7 @@ void main() {
 
 	// specular reflections
 	#pragma unroll_loop_start
-	for ( int i = 0; i < 3; i ++ ) {
+	for ( int i = 0; i < 2; i ++ ) {
 		light = lights[i];
 
 		// ...
