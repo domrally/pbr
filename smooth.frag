@@ -3,7 +3,7 @@
 struct Light
 {
     float intensity;
-    vec3 position;
+    vec3 direction;
     vec3 color;
 };
 
@@ -55,9 +55,9 @@ float schlickApproximation(float VN)
 // see: https://en.wikipedia.org/wiki/Specular_highlight#Cook%E2%80%93Torrance_model
 vec3 cookTorrance(vec3 V, vec3 N, Light L)
 {
-    vec3 H = normalize(V + L.position);
+    vec3 H = normalize(V + L.direction);
     float VN = dot(V, N);
-    float NL = dot(N, L.position);
+    float NL = dot(N, L.direction);
     float HN = dot(H, N);
     float VH = dot(V, H);
     
@@ -89,7 +89,7 @@ float orenNayar(vec3 normal, Light light, vec3 eye)
     const float B = 0.45 * sigma2 / (sigma2 + 0.09);
     
     float eyeNormalProjection = dot(eye, normal);
-    float lightNormalProjection = dot(light.position, normal);
+    float lightNormalProjection = -dot(light.direction, normal);
     float thetaEye = acos(eyeNormalProjection);
     float thetaLight = acos(lightNormalProjection);
     float alpha = max(thetaEye, thetaLight);
@@ -104,7 +104,7 @@ float orenNayar(vec3 normal, Light light, vec3 eye)
     L *= max(lightNormalProjection, 0.0);
     L *= light.intensity;
 
-	 L = clamp(L, 0.0, 1.0);
+	 L = max(L, 0.);
     
     return L;
 }
@@ -121,22 +121,40 @@ float sss(Light light, float orenNayar)
 
 void main() {
 	// light
-	Light bulb = Light(2., vec3(100.0, 100.0, -100.0), vec3(1.0, 1.0, 1.0));
+	Light lights[3];
+	lights[0] = Light(.4, normalize(vec3(1., 1., -1.)), vec3(1., 1., 1.));
+	lights[1] = Light(.2, normalize(vec3(-1., 0., -1.)), vec3(1., 1., 1.));
+	lights[2] = Light(.1, normalize(vec3(1., 0., 1.)), vec3(1., 1., 1.));
+
+	gl_FragColor.rgb = vec3(.1);
+	Light light;
+	vec3 specular;
+	float d;
+	vec3 diffuse;
+	vec3 scattered;
 
 	// specular reflections
-	vec3 specular = cookTorrance(toCamera, awayFromTriangle, bulb);
+	#pragma unroll_loop_start
+	for ( int i = 0; i < 3; i ++ ) {
+		light = lights[i];
 
-	//  diffuse reflections
-	float d = orenNayar(awayFromTriangle, bulb, toCamera);
-	vec3 diffuse = vec3(d);
+		// ...
+		specular = cookTorrance(toCamera, awayFromTriangle, light);
 
-	// subsurface scattering
-	vec3 scattered = vec3(sss(bulb, d));
+		//  diffuse reflections
+		d = orenNayar(awayFromTriangle, light, toCamera);
+		diffuse = vec3(d);
 
-	// 
-	gl_FragColor.rgb = vec3(.4) + diffuse + specular + scattered;
+		// subsurface scattering
+		scattered = vec3(sss(light, d));
+
+		// 
+		gl_FragColor.rgb += diffuse + specular + scattered;
+	}
+	#pragma unroll_loop_end
+
 	gl_FragColor.a = 1.;
 
-	// float screenGamma = 2.2;
-	// gl_FragColor = pow(gl_FragColor / 2., vec4(1.0 / screenGamma));
+	float screenGamma = 2.2;
+	gl_FragColor = pow(gl_FragColor / 2., vec4(1.0 / screenGamma));
 }
